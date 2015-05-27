@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.uzmap.pkg.uzcore.UZResourcesIDFinder;
+import io.vov.vitamio.LibsChecker;
 import io.vov.vitamio.MediaPlayer;
 import io.vov.vitamio.widget.MediaController;
 import io.vov.vitamio.widget.VideoView;
@@ -39,8 +40,11 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mContext = this;
+        if(!LibsChecker.checkVitamioLibs(this)) {
+            return;
+        }
 
+        mContext = this;
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         int layoutId = UZResourcesIDFinder.getResLayoutID("mo_video_play_activity_layout");
