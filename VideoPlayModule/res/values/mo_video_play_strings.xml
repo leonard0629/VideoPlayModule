@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="sd">标清</string>
-    <string name="hd">高清</string>
-    <string name="uhd">超清</string>
-</resources>
