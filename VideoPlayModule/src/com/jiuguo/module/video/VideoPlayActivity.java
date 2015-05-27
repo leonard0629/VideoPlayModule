@@ -43,10 +43,6 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if(!LibsChecker.checkVitamioLibs(this)) {
-            return;
-        }
-
         mContext = this;
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -66,14 +62,14 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     private void initView() {
         int videoViewId = UZResourcesIDFinder.getResIdID("video_view");
         if(videoViewId > 0) {
-            mVideoView = (VideoView) findViewById(R.id.video_view);
+            mVideoView = (VideoView) findViewById(videoViewId);
         } else {
             Log.e(TAG, "名为：video_view的VideoView不存在!请检查代码");
         }
 
         int controllerId = UZResourcesIDFinder.getResIdID("video_controller");
         if(controllerId > 0) {
-            mController = (MediaController) findViewById(R.id.video_controller);
+            mController = (MediaController) findViewById(controllerId);
             mController.setOnHiddenListener(new MediaController.OnHiddenListener(){
 
                 @Override
@@ -137,18 +133,21 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
 //        mSeekBar = (SeekBar) findViewById(R.id.mediacontroller_seekbar);
 //        pb = (ProgressBar) findViewById(R.id.probar);
 
-        if(UZResourcesIDFinder.getResIdID("download_rate") > 0) {
-            downloadRateView = (TextView) findViewById(R.id.download_rate);
+        int tvDownloadRateId = UZResourcesIDFinder.getResIdID("download_rate");
+        if(tvDownloadRateId > 0) {
+            downloadRateView = (TextView) findViewById(tvDownloadRateId);
         } else {
             Log.e(TAG, "名为：download_rate的TextView不存在!请检查代码");
         }
-        if(UZResourcesIDFinder.getResIdID("load_rate") > 0) {
-            loadRateView = (TextView) findViewById(R.id.load_rate);
+        int tvLoadRateId = UZResourcesIDFinder.getResIdID("load_rate");
+        if(tvLoadRateId > 0) {
+            loadRateView = (TextView) findViewById(tvLoadRateId);
         } else {
             Log.e(TAG, "名为：load_rate的TextView不存在!请检查代码");
         }
-        if(UZResourcesIDFinder.getResIdID("probar") > 0) {
-            pb = (ProgressBar) findViewById(R.id.probar);
+        int pbId = UZResourcesIDFinder.getResIdID("probar");
+        if(pbId > 0) {
+            pb = (ProgressBar) findViewById(pbId);
         } else {
             Log.e(TAG, "名为：probar的ProgressBar不存在!请检查代码");
         }

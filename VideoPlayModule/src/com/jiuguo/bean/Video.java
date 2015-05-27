@@ -1,8 +1,5 @@
 package com.jiuguo.bean;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-
 import java.util.Date;
 
 public class Video extends BaseBean {
@@ -10,26 +7,6 @@ public class Video extends BaseBean {
 
 	private static final long serialVersionUID = -7661370442864795309L;
 
-	public static final String ID = "id";
-	public static final String TITLE = "title";
-	public static final String DESCRIBE = "describe";
-	public static final String DURATION = "duration";
-	public static final String POSTDATE = "postdate";
-	public static final String POSTERID = "posterid";
-	public static final String POSTERLOGO = "posterlogo";
-	public static final String POSTERNAME = "postername";
-	public static final String IMAGEURL = "image";
-	public static final String PLAYCOUNT = "pcount";
-	public static final String FAVOURCOUNT = "fcount";
-	public static final String BOOKCOUNT = "bcount";
-	public static final String COMMENTCOUNT = "ccount";
-	public static final String APPLECOUNT = "acount";
-	public static final String CHECKID = "checked_id";
-	public static final String ISBOOKED = "user_book";
-	public static final String ISCOLLECTED = "user_collect";
-	public static final String RECORDTIME = "recordtime";
-	public static final Integer MAX_VALUE = 200000;
-	public static final String TID = "tid";
 	private Long id;
 	private String title;
 	private String describe;

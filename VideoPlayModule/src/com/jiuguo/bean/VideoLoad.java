@@ -1,7 +1,5 @@
 package com.jiuguo.bean;
 
-import java.util.ArrayList;
-
 public class VideoLoad extends Video {
     private static final long serialVersionUID = 295650701650118572L;
     public final static int MP4 = 0;
@@ -11,9 +9,9 @@ public class VideoLoad extends Video {
     public final static int GPH = 4;
     private String fileUrl = "";
 
-    //ÏÂÔØ×ÜÆ¬Êı
+    //ä¸‹è½½æ€»ç‰‡æ•°
     private int downLoadSize = 0;
-    //ÒÑÍê³ÉÆ¬Êı
+    //å·²å®Œæˆç‰‡æ•°
     private int downLoadPart = 0;
     private int totalSize = Integer.MAX_VALUE;
     private boolean isFinish = false;
