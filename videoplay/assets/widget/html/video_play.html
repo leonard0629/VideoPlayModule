@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0,user-scalable=0">
+    <title>APICloud</title>
+    <link rel="stylesheet" type="text/css" href="../css/base.css" />
+    <link rel="stylesheet" type="text/css" href="../css/common.css" />
+    <script type="text/javascript">
+
+		var videoPlay = null;
+		apiready = function(){
+			videoPlay = api.require("videoPlay");
+			startActivity();
+	    }
+	    
+		function startActivity(){
+			var param = {videoUrl:"http://pl.youku.com/playlist/m3u8?vid=238242106&type=hd2&ts=1432184253&keyframe=1&ep=diaXGEiFUswF5iXdjj8bYi%2fkc3FZXPwJ%2fh2Bg9NiBtQsS%2bu2&sid=44321842536261253676f&token=8339&ctype=12&ev=1&oip=3080472520"};
+//			var param = {videoUrl:"http://pl.youku.com/playlist/m3u8?ts=1394676342&keyframe=0&vid=XNjU4MTc0Mjky&type=mp4"};
+			videoPlay.startActivity(param);
+		}
+
+	</script>
+</head>
+<body>
+    <div id="wrap">
+        <div id="main"> 
+            <div  >
+            	<!--<input type="button" onclick="showAlert()" value="弹出Alert" /><br><br>-->
+            	<input type="button" onclick="startActivity()" value="启动Activity" /><br><br>
+            	<!--<input type="button" onclick="startActivityForResult()" value="启动Activity并获取该Activity的返回值" /><br><br>-->
+            	<!--<div style="font-size:0.8em;">acticity返回值:</div>-->
+            	<!--<div id="activity_result" style="width:100%;word-wrap: break-word;word-break: normal;"></div><br><br>-->
+            	<!--<div style="font-size:0.8em;">输入震动时间,单位：毫秒</div>-->
+            	<!--<input type="text" id="vibrate" value="20000" /><br><br>-->
+            	<!--<input type="button" onclick="vibrate()" value="开始震动" /><br>-->
+            	<!--<input type="button" onclick="stopVibrate()" value="停止震动" /><br><br>-->
+            	<!--<input type="button" onclick="addView()" value="添加自定义View到屏幕" /><br><br>-->
+            	<!--<input type="button" onclick="removeView()" value="从屏幕移除自定义View" /><br><br>-->
+            	<!--<input type="button" onclick="getProp()" value="获取属性" /><br><br>-->
+            </div>
+
+        </div>   
+    </div>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+	modules:[
+		{
+		    name:"videoPlay",
+		    class:"com.jiuguo.module.video.VideoPlayModule"
+		},
+	]
+}
