@@ -1,6 +1,7 @@
-package com.jiuguo.bean;
+package com.jiuguo.app.bean;
 
 public class VideoLoad extends Video {
+
     private static final long serialVersionUID = 295650701650118572L;
     public final static int MP4 = 0;
     public final static int HD2 = 1;
@@ -10,19 +11,20 @@ public class VideoLoad extends Video {
     private String fileUrl = "";
 
     //下载总片数
-    private int downLoadSize = 0;
+    private int totalPart = 0;
     //已完成片数
     private int downLoadPart = 0;
+    //下载总大小
     private int totalSize = Integer.MAX_VALUE;
+    //已下载大小
+    private int downloadSize = 0;
     private boolean isFinish = false;
     private boolean isStart = true;
     private int type = MP4;
     private boolean isNew = false;
     private String url;
 
-    public VideoLoad() {
-
-    }
+    public VideoLoad() {}
 
     public VideoLoad(Video video) {
         this.setId(video.getId());
@@ -47,12 +49,12 @@ public class VideoLoad extends Video {
         this.fileUrl = fileUrl;
     }
 
-    public int getDownLoadSize() {
-        return downLoadSize;
+    public int getTotalPart() {
+        return totalPart;
     }
 
-    public void setDownLoadSize(int downLoadSize) {
-        this.downLoadSize = downLoadSize;
+    public void setTotalPart(int totalPart) {
+        this.totalPart = totalPart;
     }
 
     public int getDownLoadPart() {
@@ -69,6 +71,14 @@ public class VideoLoad extends Video {
 
     public void setTotalSize(int totalSize) {
         this.totalSize = totalSize;
+    }
+
+    public int getDownloadSize() {
+        return downloadSize;
+    }
+
+    public void setDownloadSize(int downloadSize) {
+        this.downloadSize = downloadSize;
     }
 
     public boolean isFinish() {

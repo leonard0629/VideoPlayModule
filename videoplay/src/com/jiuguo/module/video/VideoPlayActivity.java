@@ -235,7 +235,6 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
             @Override
             public void onStart(VideoView view, MediaPlayer mp, long duration) {
                 Log.i(TAG,"onStart");
-//                mp.setWakeMode(getCon, PowerManager.SCREEN_BRIGHT_WAKE_LOCK);
 //
 //                Log.i(TAG,"onStart videoPlay + isSeekToRecord : " + isSeekToRecord);
 //
@@ -353,7 +352,6 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         Log.i(TAG,"onInfo");
         switch (what) {
             case MediaPlayer.MEDIA_INFO_BUFFERING_START:
-                Log.v(TAG, "buffering");
                 if (mVideoView.isPlaying()) {
                     mVideoView.pause();
                     pb.setVisibility(View.VISIBLE);
@@ -364,7 +362,6 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                 }
                 break;
             case MediaPlayer.MEDIA_INFO_BUFFERING_END:
-                Log.v(TAG, "start");
                 mVideoView.start();
                 pb.setVisibility(View.GONE);
                 downloadRateView.setVisibility(View.GONE);

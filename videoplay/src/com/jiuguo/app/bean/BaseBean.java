@@ -1,4 +1,4 @@
-package com.jiuguo.bean;
+package com.jiuguo.app.bean;
 
 import java.io.Serializable;
 

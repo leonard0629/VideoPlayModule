@@ -1,4 +1,4 @@
-package com.jiuguo.bean;
+package com.jiuguo.app.bean;
 
 import java.util.Date;
 
@@ -14,7 +14,7 @@ public class Video extends BaseBean {
 	private String postDate;
 	private int posterId;
 	private String posterName;
-	private String posterlogo;
+	private String posterLogo;
 	private String imageUrl;
 	private int playCount;
 	private int favourCount;
@@ -28,8 +28,6 @@ public class Video extends BaseBean {
 	private int recordTime = 0;
 	private int tid = 0;
 	private Date lastTime;
-	private boolean isLive = false;
-	private int online = 0;
 
 	public Long getId() {
 		return id;
@@ -127,12 +125,12 @@ public class Video extends BaseBean {
 		this.checkId = checkId;
 	}
 
-	public String getPosterlogo() {
-		return posterlogo;
+	public String getPosterLogo() {
+		return posterLogo;
 	}
 
-	public void setPosterlogo(String posterlogo) {
-		this.posterlogo = posterlogo;
+	public void setPosterLogo(String posterLogo) {
+		this.posterLogo = posterLogo;
 	}
 
 	public boolean isBooked() {
@@ -149,14 +147,6 @@ public class Video extends BaseBean {
 
 	public void setCollected(boolean isCollected) {
 		this.isCollected = isCollected;
-	}
-
-	public boolean isLive() {
-		return isLive;
-	}
-
-	public void setIsLive(boolean isLive) {
-		this.isLive = isLive;
 	}
 
 	public Date getLastTime() {
@@ -205,13 +195,5 @@ public class Video extends BaseBean {
 
 	public void setRecordTime(int recordTime) {
 		this.recordTime = recordTime;
-	}
-
-	public int getOnline() {
-		return online;
-	}
-
-	public void setOnline(int online) {
-		this.online = online;
 	}
 }
