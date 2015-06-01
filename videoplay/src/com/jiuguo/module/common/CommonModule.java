@@ -1,4 +1,4 @@
-package com.jiuguo.module.video;
+package com.jiuguo.module.common;
 
 import android.webkit.JavascriptInterface;
 import com.jiuguo.app.utils.CommonUtils;
