@@ -7,6 +7,7 @@ import com.uzmap.pkg.uzcore.uzmodule.UZModule;
 import com.uzmap.pkg.uzcore.uzmodule.UZModuleContext;
 
 /**
+ * 视频播放模块
  * Created by leonard on 2015/5/20.
  */
 public class VideoPlayModule extends UZModule {

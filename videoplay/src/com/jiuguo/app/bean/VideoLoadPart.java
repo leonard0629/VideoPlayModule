@@ -4,6 +4,9 @@ public class VideoLoadPart extends BaseBean {
 
 	private static final long serialVersionUID = -7564123757741413864L;
 
+	public static final Integer STATE_FINISHED = 1;
+	public static final Integer STATE_UNFINISHED = 0;
+
 	private Integer id;
 	private Long videoId;
 	private Integer part;

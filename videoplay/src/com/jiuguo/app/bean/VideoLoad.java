@@ -13,7 +13,7 @@ public class VideoLoad extends Video {
     //下载总片数
     private int totalPart = 0;
     //已完成片数
-    private int downLoadPart = 0;
+    private int downloadPart = 0;
     //下载总大小
     private int totalSize = Integer.MAX_VALUE;
     //已下载大小
@@ -57,12 +57,12 @@ public class VideoLoad extends Video {
         this.totalPart = totalPart;
     }
 
-    public int getDownLoadPart() {
-        return downLoadPart;
+    public int getDownloadPart() {
+        return downloadPart;
     }
 
-    public void setDownLoadPart(int downLoadPart) {
-        this.downLoadPart = downLoadPart;
+    public void setDownloadPart(int downloadPart) {
+        this.downloadPart = downloadPart;
     }
 
     public int getTotalSize() {

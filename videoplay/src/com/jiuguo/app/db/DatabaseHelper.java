@@ -5,7 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-public class VideoDBHelper extends SQLiteOpenHelper {
+public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TAG = "VideoDBHelper";
 
     public static final String DATABASE_NAME = "videoLoad.db";
@@ -50,7 +50,7 @@ public class VideoDBHelper extends SQLiteOpenHelper {
             + "content text,"
             + "date text);";
 
-    public VideoDBHelper(Context context) {
+    public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
