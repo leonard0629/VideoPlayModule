@@ -33,7 +33,7 @@ public class VideoLoad extends Video {
         this.setDescribe(video.getDescribe());
         this.setDuration(video.getDuration());
         this.setFavourCount(video.getFavourCount());
-        this.setImageUrl(video.getImageUrl());
+        this.setImage(video.getImage());
         this.setTitle(video.getTitle());
         this.setPosterName(video.getPosterName());
         this.setPostDate(video.getPostDate());

@@ -15,7 +15,7 @@ public class Video extends BaseBean {
 	private int posterId;
 	private String posterName;
 	private String posterLogo;
-	private String imageUrl;
+	private String image;
 	private int playCount;
 	private int favourCount;
 	private int bookCount;
@@ -85,12 +85,12 @@ public class Video extends BaseBean {
 		this.posterName = posterName;
 	}
 
-	public String getImageUrl() {
-		return imageUrl;
+	public String getImage() {
+		return image;
 	}
 
-	public void setImageUrl(String imageUrl) {
-		this.imageUrl = imageUrl;
+	public void setImage(String image) {
+		this.image = image;
 	}
 
 	public int getPlayCount() {

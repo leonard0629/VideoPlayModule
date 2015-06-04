@@ -14,9 +14,12 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.*;
+import com.jiuguo.app.bean.NewVideoUrl;
 import com.jiuguo.app.bean.Video;
+import com.jiuguo.app.core.AppClient;
 import com.jiuguo.app.core.AppContext;
 import com.jiuguo.app.db.DatabaseManager;
+import com.jiuguo.app.utils.ResolutionUtils;
 import com.uzmap.pkg.uzcore.UZResourcesIDFinder;
 import de.greenrobot.event.EventBus;
 import io.vov.vitamio.LibsChecker;
@@ -42,6 +45,7 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     private Video video;
     private int mode;
     private String mUri;
+    private String[] mUris;
 
     private int mScreenWidth;
     private int mScreenHeight;
@@ -421,17 +425,17 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
 
     private void getNetVideoUrl() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        NewVideoUrl url = null;
         try {
             Date date = sdf.parse(video.getPostDate());
             Date today = new Date();
             int diff = (int) ((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
             if (diff < 1) {
-                url = AppClientV2.getNewYoukuUrl(appContext, video.getCheckId(), format);
+                int resolution = appContext.getPrefs("resolution", 2);
+                String format = ResolutionUtils.formatResolution(resolution);
+                url = AppClient.getNewYoukuUrl(appContext, video.getCheckId(), format);
             } else {
-                AppClientV2.getYoukuUrl(appContext,
-                        video.getId(), video.getCheckId(),
-                        appContext.getLoginId(),
-                        appContext.getLoginToken());
+                url = AppClient.getYoukuUrl(appContext, video.getId(), video.getCheckId(), appContext.getLoginId(), appContext.getLoginToken());
             }
         } catch (Exception e) {
             Log.e(TAG, "get exception when getNetVideoUrl, cause: " + e.getMessage());
@@ -457,7 +461,7 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
 //                        msg.what = JGConstant.LiveVideo;
 //                        Bundle bundle = new Bundle();
 //                        bundle.putSerializable("url", zhanqiUrl);
-//                        bundle.putString("imageUrl", tmp.getImageUrl());
+//                        bundle.putString("imageUrl", tmp.getImage());
 //                        msg.setData(bundle);
 //                        handler.sendMessage(msg);
 //                    } else {

@@ -25,7 +25,7 @@ public class CommonModule extends UZModule {
      * @param moduleContext (Required)
      */
     @JavascriptInterface
-    public String jsmethod_getPrefs(UZModuleContext moduleContext) {
+    public String jsmethod_setUser(UZModuleContext moduleContext) {
         String key = moduleContext.optString("key");
         String defaultValue = moduleContext.optString("defaultValue");
         AppContext appContext = (AppContext) moduleContext.getContext();

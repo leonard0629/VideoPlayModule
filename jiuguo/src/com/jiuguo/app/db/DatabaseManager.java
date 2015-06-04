@@ -58,7 +58,7 @@ public class DatabaseManager {
 		try {
             database.execSQL(sql, new Object[]{videoLoad.getId(), videoLoad.getTitle(), videoLoad.getDescribe(),
 					videoLoad.getDuration(), videoLoad.getPostDate(), videoLoad.getPosterId(),
-					videoLoad.getPosterName(), videoLoad.getImageUrl(), videoLoad.getPlayCount(),
+					videoLoad.getPosterName(), videoLoad.getImage(), videoLoad.getPlayCount(),
 					videoLoad.getFavourCount(), videoLoad.getBookCount(), videoLoad.getCheckId(),
 					videoLoad.getFileUrl(), videoLoad.getDownloadSize(), videoLoad.getTotalSize(),
 					videoLoad.isFinish(), videoLoad.isStart(), videoLoad.getDownloadPart(),
@@ -85,7 +85,7 @@ public class DatabaseManager {
 			values.put("postdate", videoload.getPostDate());
 			values.put("posterid", videoload.getPosterId());
 			values.put("postername", videoload.getPosterName());
-			values.put("imageUrl", videoload.getImageUrl());
+			values.put("imageUrl", videoload.getImage());
 			values.put("playCount", videoload.getPlayCount());
 			values.put("favourcount", videoload.getFavourCount());
 			values.put("bookcount", videoload.getBookCount());
