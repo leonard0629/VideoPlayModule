@@ -1,7 +1,7 @@
 package com.jiuguo.module.common;
 
 import android.webkit.JavascriptInterface;
-import com.jiuguo.app.utils.CommonUtils;
+import com.jiuguo.app.core.AppContext;
 import com.uzmap.pkg.uzcore.UZWebView;
 import com.uzmap.pkg.uzcore.uzmodule.UZModule;
 import com.uzmap.pkg.uzcore.uzmodule.UZModuleContext;
@@ -28,8 +28,8 @@ public class CommonModule extends UZModule {
     public String jsmethod_getPrefs(UZModuleContext moduleContext) {
         String key = moduleContext.optString("key");
         String defaultValue = moduleContext.optString("defaultValue");
-
-        return CommonUtils.getPrefs(moduleContext.getContext(), key, defaultValue);
+        AppContext appContext = (AppContext) moduleContext.getContext();
+        return appContext.getPrefs(key, defaultValue);
     }
 
     /**
@@ -44,8 +44,8 @@ public class CommonModule extends UZModule {
     public void jsmethod_setPrefs(UZModuleContext moduleContext) {
         String key = moduleContext.optString("key");
         String value = moduleContext.optString("value");
-
-        CommonUtils.setPrefs(moduleContext.getContext(), key, value);
+        AppContext appContext = (AppContext) moduleContext.getContext();
+        appContext.setPrefs(key, value);
     }
 
     /**
@@ -59,8 +59,8 @@ public class CommonModule extends UZModule {
     @JavascriptInterface
     public void jsmethod_removePrefs(UZModuleContext moduleContext) {
         String key = moduleContext.optString("key");
-
-        CommonUtils.removePrefs(moduleContext.getContext(), key);
+        AppContext appContext = (AppContext) moduleContext.getContext();
+        appContext.removePrefs(key);
     }
 
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.jiuguo.module"
+    package="com.jiuguo"
     android:versionCode="1"
     android:versionName="1.0.0" >
 
@@ -90,7 +90,7 @@
         </activity>
 
         <activity
-            android:name=".video.VideoPlayActivity"
+            android:name="com.jiuguo.module.video.VideoPlayActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation"
             android:launchMode="standard"
             android:screenOrientation="sensorLandscape"
@@ -106,6 +106,12 @@
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:windowSoftInputMode="stateAlwaysHidden" />
 
+        <receiver android:name="com.jiuguo.app.receiver.NetChangeReceiver" >
+            <intent-filter android:priority="1000" >
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

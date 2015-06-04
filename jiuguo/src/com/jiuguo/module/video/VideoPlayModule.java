@@ -2,9 +2,11 @@ package com.jiuguo.module.video;
 
 import android.content.Intent;
 import android.webkit.JavascriptInterface;
+import com.jiuguo.app.bean.Video;
 import com.uzmap.pkg.uzcore.UZWebView;
 import com.uzmap.pkg.uzcore.uzmodule.UZModule;
 import com.uzmap.pkg.uzcore.uzmodule.UZModuleContext;
+import org.json.JSONObject;
 
 /**
  * 视频播放模块
@@ -20,8 +22,11 @@ public class VideoPlayModule extends UZModule {
     public void jsmethod_startActivity(UZModuleContext moduleContext) {
         Intent intent = new Intent(getContext(), VideoPlayActivity.class);
 
-        String videoUrl = moduleContext.optString("videoUrl");
-        intent.putExtra("videoUrl", videoUrl);
+        int mode = moduleContext.optInt("mode");
+        JSONObject jsonObject = moduleContext.optJSONObject("video");
+        Video video = com.alibaba.fastjson.JSONObject.parseObject(jsonObject.toString(), Video.class);
+        intent.putExtra("mode", mode);
+        intent.putExtra("video", video);
 
         startActivity(intent);
     }

@@ -1,22 +1,32 @@
 package com.jiuguo.module.video;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+import android.view.WindowManager;
+import android.widget.*;
+import com.jiuguo.app.bean.Video;
+import com.jiuguo.app.core.AppContext;
+import com.jiuguo.app.db.DatabaseManager;
 import com.uzmap.pkg.uzcore.UZResourcesIDFinder;
+import de.greenrobot.event.EventBus;
 import io.vov.vitamio.LibsChecker;
 import io.vov.vitamio.MediaPlayer;
 import io.vov.vitamio.widget.MediaController;
 import io.vov.vitamio.widget.VideoView;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by leonard on 2015/5/20.
@@ -25,16 +35,36 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
 
     private final static String TAG = "VideoPlayActivity";
 
+    private static final int MODE_NET = 0;
+    private static final int MODE_LOCAL = 1;
+    private static final int MODE_LIVE = 2;
+
+    private Video video;
+    private int mode;
+    private String mUri;
+
+    private int mScreenWidth;
+    private int mScreenHeight;
+
+    private ImageButton ibBack;
+    private ImageButton ibComment;
+    private TextView tvTitle;
+    private TextView tvBattery;
+
     private VideoView mVideoView;
     private ProgressBar pb;
     private TextView downloadRateView;
     private TextView loadRateView;
 
-    private boolean isMediaCtlShow = true;
     private MediaController mController;
     private AudioManager audioManager;
 
-    private Context mContext;
+    private DatabaseManager dbManager;
+
+    private BroadcastReceiver batteryReceiver;
+    private IntentFilter batteryFilter;
+
+    private AppContext appContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +74,11 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
             return;
         }
 
-        mContext = this;
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        appContext = (AppContext) this.getApplicationContext();
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        dbManager = new DatabaseManager(appContext);
 
         int layoutId = UZResourcesIDFinder.getResLayoutID("mo_video_play_activity_layout");
         if(layoutId > 0){
@@ -55,8 +88,14 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
             return;
         }
 
+        mScreenWidth = getResources().getDisplayMetrics().widthPixels;
+        mScreenHeight = getResources().getDisplayMetrics().heightPixels;
+
         initView();
         initVideo();
+        handleIntent();
+
+        monitorBatteryState();
     }
 
     private void initView() {
@@ -96,7 +135,6 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
 //                mHandler.sendEmptyMessage(HideVL);
                 }
             });
-//        batterLevel = (TextView) findViewById(R.id.video_battery_level);
 
             mController.setOnLightChangedListener(new MediaController.OnLightChangeListener() {
 
@@ -130,8 +168,14 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
             Log.e(TAG, "名为：video_controller的MediaController不存在!请检查代码");
         }
 
+        int tvBatteryId = UZResourcesIDFinder.getResIdID("video_battery_level");
+        if(tvBatteryId > 0) {
+            tvBattery = (TextView) findViewById(tvBatteryId);
+        } else {
+            Log.e(TAG, "名为：video_battery_level的TextView不存在!请检查代码");
+        }
+
 //        mSeekBar = (SeekBar) findViewById(R.id.mediacontroller_seekbar);
-//        pb = (ProgressBar) findViewById(R.id.probar);
 
         int tvDownloadRateId = UZResourcesIDFinder.getResIdID("download_rate");
         if(tvDownloadRateId > 0) {
@@ -151,20 +195,21 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         } else {
             Log.e(TAG, "名为：probar的ProgressBar不存在!请检查代码");
         }
-//
-//        mBackImageButton = (ImageButton) findViewById(R.id.video_back);
-//        mBackImageButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
+
+        int ibBackId = UZResourcesIDFinder.getResIdID("video_back");
+        ibBack = (ImageButton) findViewById(ibBackId);
+        ibBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 //                recordTime();
-//                try{
-//                    Thread.sleep(100);
-//                }catch(Exception e){
-//                    e.printStackTrace();
-//                }
-//                VideoPlay.this.finish();
-//            }
-//        });
+                try{
+                    Thread.sleep(100);
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+                VideoPlayActivity.this.finish();
+            }
+        });
 //        mTitleTextView = (TextView) findViewById(R.id.video_title);
 //        mTitleTextView.setText(videoTitle);
 
@@ -339,12 +384,137 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                 return true;
             }});
 //        if(mUris == null){
-            String videoUrl = getIntent().getStringExtra("videoUrl");
-            Uri mUri = Uri.parse(videoUrl);
-            mVideoView.setVideoURI(mUri);
+//            String videoUrl = getIntent().getStringExtra("videoUrl");
+//            Uri mUri = Uri.parse(videoUrl);
+//            mVideoView.setVideoURI(mUri);
 //        }else{
 //            mVideoView.setVideoURI(mUris, appContext.getSaveCachePath());
 //        }
+//        mVideoView.setVideoURI(Uri.parse(appContext.getPrefs("url", "")));
+    }
+
+    private void handleIntent() {
+        video = (Video) getIntent().getSerializableExtra("video");
+        mode = getIntent().getIntExtra("mode", MODE_NET);
+
+        if(video != null) {
+            appContext.toast("无视频信息", Toast.LENGTH_SHORT);
+            VideoPlayActivity.this.finish();
+            return;
+        }
+
+        switch (mode) {
+            case MODE_NET: {
+                getNetVideoUrl();
+                break;
+            }
+            case MODE_LOCAL: {
+                getLocalVideoUrl();
+                break;
+            }
+            case MODE_LIVE: {
+                getLiveVideoUrl();
+                break;
+            }
+        }
+    }
+
+    private void getNetVideoUrl() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        try {
+            Date date = sdf.parse(video.getPostDate());
+            Date today = new Date();
+            int diff = (int) ((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+            if (diff < 1) {
+                url = AppClientV2.getNewYoukuUrl(appContext, video.getCheckId(), format);
+            } else {
+                AppClientV2.getYoukuUrl(appContext,
+                        video.getId(), video.getCheckId(),
+                        appContext.getLoginId(),
+                        appContext.getLoginToken());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "get exception when getNetVideoUrl, cause: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void getLocalVideoUrl() {
+
+    }
+
+    private void getLiveVideoUrl() {
+        new Thread() {
+            @Override
+            public void run() {
+//                try {
+
+//                    NewVideoUrl zhanqiUrl = AppClientV2.getLiveUrl(mContext, tmp.getId());
+//                    if (zhanqiUrl != null) {
+//                        zhanqiUrl.setVideoId(tmp.getId());
+//                        zhanqiUrl.setTitle(tmp.getTitle());
+//                        Message msg = Message.obtain();
+//                        msg.what = JGConstant.LiveVideo;
+//                        Bundle bundle = new Bundle();
+//                        bundle.putSerializable("url", zhanqiUrl);
+//                        bundle.putString("imageUrl", tmp.getImageUrl());
+//                        msg.setData(bundle);
+//                        handler.sendMessage(msg);
+//                    } else {
+//                        handler.post(new Runnable() {
+//
+//                            @Override
+//                            public void run() {
+//                                mContext.toast("主播可能正在休息哦，不信再点一下", Toast.LENGTH_SHORT);
+//                            }
+//                        });
+//                    }
+//                } catch (Exception e) {
+//                    // TODO: handle exception
+//                    handler.post(new Runnable() {
+//
+//                        @Override
+//                        public void run() {
+//                            mContext.toast(R.string.server_connect_failed, Toast.LENGTH_SHORT);
+//                        }
+//                    });
+//                }
+            }
+
+        }.start();
+    }
+
+    private void monitorBatteryState() {
+        batteryReceiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                int rawlevel = intent.getIntExtra("level", -1);
+                int scale = intent.getIntExtra("scale", -1);
+                int status = intent.getIntExtra("status", -1);
+                int health = intent.getIntExtra("health", -1);
+                int level = -1; // percentage, or -1 for unknown
+                if (rawlevel >= 0 && scale > 0) {
+                    level = (rawlevel * 100) / scale;
+                }
+                if (BatteryManager.BATTERY_HEALTH_OVERHEAT != health) {
+                    switch (status) {
+                        case BatteryManager.BATTERY_STATUS_UNKNOWN:
+                            break;
+                        case BatteryManager.BATTERY_STATUS_CHARGING:
+                            tvBattery.setText("电量:" + level + "%");
+                            break;
+                        case BatteryManager.BATTERY_STATUS_DISCHARGING:
+                        case BatteryManager.BATTERY_STATUS_NOT_CHARGING:
+                        case BatteryManager.BATTERY_STATUS_FULL:
+                            tvBattery.setText("电量:" + level + "%");
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        };
+        batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(batteryReceiver, batteryFilter);
     }
 
     @Override
@@ -378,5 +548,15 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     public void onBufferingUpdate(MediaPlayer mp, int percent) {
         Log.i(TAG,"onBufferingUpdate");
         loadRateView.setText(percent + "%");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if(batteryReceiver != null){
+            unregisterReceiver(batteryReceiver);
+        }
+        EventBus.getDefault().unregister(this);
     }
 }
