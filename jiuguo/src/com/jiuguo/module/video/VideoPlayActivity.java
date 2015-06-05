@@ -13,16 +13,18 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.*;
+import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 import com.jiuguo.app.bean.NewVideoUrl;
 import com.jiuguo.app.bean.UrlBean;
 import com.jiuguo.app.bean.Video;
 import com.jiuguo.app.core.AppClient;
-import com.jiuguo.app.core.AppContext;
 import com.jiuguo.app.db.DatabaseManager;
+import com.jiuguo.app.utils.CommonUtils;
 import com.jiuguo.app.utils.ResolutionUtils;
 import com.uzmap.pkg.uzcore.UZResourcesIDFinder;
-import de.greenrobot.event.EventBus;
 import io.vov.vitamio.LibsChecker;
 import io.vov.vitamio.MediaPlayer;
 import io.vov.vitamio.widget.MediaController;
@@ -73,21 +75,23 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     private BroadcastReceiver batteryReceiver;
     private IntentFilter batteryFilter;
 
-    private AppContext appContext;
+    private Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mContext = this;
+        CommonUtils.initAppFolder(mContext);
 
         if(!LibsChecker.checkVitamioLibs(this)) {
             return;
         }
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        appContext = (AppContext) this.getApplicationContext();
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        dbManager = new DatabaseManager(appContext);
+        dbManager = new DatabaseManager(mContext);
+
 
         int layoutId = UZResourcesIDFinder.getResLayoutID("mo_video_play_activity_layout");
         if(layoutId > 0){
@@ -392,14 +396,13 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
 //                }
                 return true;
             }});
-//        if(mUris == null){
-//            String videoUrl = getIntent().getStringExtra("videoUrl");
-//            Uri mUri = Uri.parse(videoUrl);
-//            mVideoView.setVideoURI(mUri);
-//        }else{
-//            mVideoView.setVideoURI(mUris, appContext.getSaveCachePath());
-//        }
-//        mVideoView.setVideoURI(Uri.parse(appContext.getPrefs("url", "")));
+
+        if(playUrls == null){
+            Uri uri = Uri.parse(playUrl);
+            mVideoView.setVideoURI(uri);
+        } else{
+            mVideoView.setVideoURI(playUrls, CommonUtils.getCacheSavePath());
+        }
     }
 
     private void handleIntent() {
@@ -407,7 +410,7 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         mode = getIntent().getIntExtra("mode", MODE_NET);
 
         if(video != null) {
-            appContext.toast("无视频信息", Toast.LENGTH_SHORT);
+            CommonUtils.toast(mContext, "无视频信息", Toast.LENGTH_SHORT);
             VideoPlayActivity.this.finish();
             return;
         }
@@ -426,28 +429,24 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                 break;
             }
         }
-
-        if(playUrls == null){
-            Uri uri = Uri.parse(playUrl);
-            mVideoView.setVideoURI(uri);
-        } else{
-            mVideoView.setVideoURI(playUrls, appContext.getCacheSavePath());
-        }
     }
 
     private void getNetVideoUrl() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         NewVideoUrl videoUrl = null;
         try {
+            int userId = CommonUtils.getLoginUserId(mContext);
+            String userToken = CommonUtils.getLoginUserToken(mContext);
+            int resolution = CommonUtils.getResolution(mContext, 2);
+
             Date date = sdf.parse(video.getPostDate());
             Date today = new Date();
             int diff = (int) ((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
             if (diff < 1) {
-                int resolution = appContext.getResolution(2);
                 String format = ResolutionUtils.formatResolution(resolution);
-                videoUrl = AppClient.getNewYoukuUrl(appContext,appContext.getLoginUserId(), video.getCheckId(), format);
+                videoUrl = AppClient.getNewYoukuUrl(mContext, userId, video.getCheckId(), format);
             } else {
-                videoUrl = AppClient.getYoukuUrl(appContext, video.getId(), video.getCheckId(), appContext.getLoginUserId(), appContext.getLoginUserToken());
+                videoUrl = AppClient.getYoukuUrl(mContext, video.getId(), video.getCheckId(), userId, userToken);
             }
 
             List<UrlBean> urlBeans = videoUrl.getListUrl();
@@ -456,7 +455,6 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                 tmpResolutionName =  urlBeans.get(urlBeans.size() - 1).getShowName();
                 tmpResolutionNumber = urlBeans.size() - 1;
                 UrlBean tmpUrlBean = null;
-                int resolution = appContext.getResolution(2);
                 switch (resolution) {
                     case 0:
                         tmpUrlBean = videoUrl.getUrlBean("flv");
@@ -609,6 +607,6 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         if(batteryReceiver != null){
             unregisterReceiver(batteryReceiver);
         }
-        EventBus.getDefault().unregister(this);
+//        EventBus.getDefault().unregister(this);
     }
 }

@@ -1,5 +1,6 @@
 package com.jiuguo.app.core;
 
+import android.content.Context;
 import android.util.Log;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -24,13 +25,12 @@ public class AppClient {
     /**
      * 获取视频地址新接口
      * 视频在一天之内更新的会用新接口，否则用旧接口
-     *
-     * @param appContext
+     * @param context
      * @param checkedId
      * @param format
      * @return
      */
-    public static NewVideoUrl getNewYoukuUrl(AppContext appContext, int userId, int checkedId, String format) {
+    public static NewVideoUrl getNewYoukuUrl(Context context, int userId, int checkedId, String format) {
         NewVideoUrl youkuUrl = null;
         String url = URLs.GetNewYouKu + "video_checkedid=" + checkedId + "&format=" + formatInput(format) + "&user_id=" + userId;
         Map<String, Object> params = new HashMap<String, Object>();
@@ -44,7 +44,7 @@ public class AppClient {
             youkuUrl = NewVideoUrl.parse(response);
             youkuUrl.setType(NewVideoUrl.TypeYouku);
 
-            MobclickAgent.onEvent(appContext, "NetWorkRequest_Action:newvideourl");
+            MobclickAgent.onEvent(context, "NetWorkRequest_Action:newvideourl");
         } catch (Exception e) {
             e.printStackTrace();
             Log.e(TAG, "get exception when getNewYoukuUrl, cause: " + e.getMessage());
@@ -54,16 +54,14 @@ public class AppClient {
 
     /**
      * 获取视频地址
-     *
-     * @param appContext
-     * @param appContext
+     * @param context
      * @param videoId
      * @param checkId
      * @param userId     if -1,cannot finish mission
      * @param userToken  if null,cannot finish mission
      * @return
      */
-    public static NewVideoUrl getYoukuUrl(AppContext appContext, Long videoId, int checkId, int userId, String userToken) {
+    public static NewVideoUrl getYoukuUrl(Context context, Long videoId, int checkId, int userId, String userToken) {
         String videoUrl = null;
         String youku_ip = null;
         String youku_ep = null;
@@ -151,7 +149,7 @@ public class AppClient {
                         tmpUrl.setUrl(youkuUrl.getBaseURL().replace("type=mp4",
                                 "type=" + tmpUrl.getType()));
                     }
-                    MobclickAgent.onEvent(appContext, "NetWorkRequest_Action:videourl");
+                    MobclickAgent.onEvent(context, "NetWorkRequest_Action:videourl");
                 }
             }
         } catch (Exception e) {
@@ -163,8 +161,7 @@ public class AppClient {
 
     /**
      * 发送弹幕
-     * @param appContext
-     * @param appContext
+     * @param context
      * @param userId
      * @param userToken
      * @param checkId
@@ -173,7 +170,7 @@ public class AppClient {
      * @param barrage
      * @return
      */
-    public static boolean postBarrage(AppContext appContext, int userId, String userToken,
+    public static boolean postBarrage(Context context, int userId, String userToken,
                                       int checkId, int videoTime, String color, String barrage) {
         boolean isSuccess = false;
 
@@ -197,7 +194,7 @@ public class AppClient {
                 int code = object.getIntValue("success");
                 if (code == 1) {
                     isSuccess = true;
-                    MobclickAgent.onEvent(appContext, "NetWorkRequest_Action:postbarrage");
+                    MobclickAgent.onEvent(context, "NetWorkRequest_Action:postbarrage");
                 }
             }
         } catch (Exception e) {
@@ -213,7 +210,7 @@ public class AppClient {
      * @param checkId
      * @return
      */
-    public static List<Barrage> getBarrages(AppContext appContext, int checkId) {
+    public static List<Barrage> getBarrages(Context context, int checkId) {
         List<Barrage> barrages = null;
 
         try {
@@ -229,7 +226,7 @@ public class AppClient {
             for (int i = 0; i < count; i++) {
                 barrages.add(Barrage.parse(array.getString(i)));
             }
-            MobclickAgent.onEvent(appContext, "NetWorkRequest_Action:getbarrage");
+            MobclickAgent.onEvent(context, "NetWorkRequest_Action:getbarrage");
         } catch (Exception e) {
             e.printStackTrace();
             Log.e(TAG, "get exception when getBarrages, cause: " + e.getMessage());
@@ -311,11 +308,11 @@ public class AppClient {
 
     /**
      * 送苹果
-     * @param appContext
+     * @param context
      * @param videoId
      * @return
      */
-    public static boolean postApple(AppContext appContext, int userId, String userToken, int videoId) {
+    public static boolean postApple(Context context, int userId, String userToken, int videoId) {
         boolean result = false;
         try {
             String url = URLs.POSTAPPLE + "video_checkedid=" + videoId + "&user_id=" + userId + "&user_token=" + userToken;
@@ -330,7 +327,7 @@ public class AppClient {
             int type = object.getIntValue("valid");
             if (type == 0) {
                 result = true;
-                MobclickAgent.onEvent(appContext, "NetWorkRequest_Action:postapple");
+                MobclickAgent.onEvent(context, "NetWorkRequest_Action:postapple");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -341,11 +338,11 @@ public class AppClient {
 
     /**
      * 获取苹果
-     * @param appContext
+     * @param context
      * @param videoId
      * @return
      */
-    public static int getApple(AppContext appContext, int videoId) {
+    public static int getApple(Context context, int videoId) {
         int count = 0;
 
         try {
@@ -358,7 +355,7 @@ public class AppClient {
             String response = HttpHelper.get(url, URLs.ENCODE);
             JSONObject object = JSON.parseObject(response);
             count = object.getIntValue("count");
-            MobclickAgent.onEvent(appContext, "NetWorkRequest_Action:getvideoapple");
+            MobclickAgent.onEvent(context, "NetWorkRequest_Action:getvideoapple");
         } catch (Exception e) {
             e.printStackTrace();
             Log.e(TAG, "get exception when getApple, cause: " + e.getMessage());
@@ -368,11 +365,11 @@ public class AppClient {
 
     /**
      * 获取直播URL
-     * @param appContext
+     * @param context
      * @param id
      * @return
      */
-    public static NewVideoUrl getLiveUrl(AppContext appContext, int id) {
+    public static NewVideoUrl getLiveUrl(Context context, int id) {
         NewVideoUrl result = null;
         try {
             String url = URLs.GETLIVEURL + "id=" + id;
@@ -410,7 +407,7 @@ public class AppClient {
                     urlBean.setUrl(allurl[0]);
                     urlBeans.add(urlBean);
                     result.setListUrl(urlBeans);
-                    MobclickAgent.onEvent(appContext, "NetWorkRequest_Action:getliveurl");
+                    MobclickAgent.onEvent(context, "NetWorkRequest_Action:getliveurl");
                 }
             }
         } catch (Exception e) {
@@ -423,13 +420,13 @@ public class AppClient {
 
     /**
      * 获取直播订阅
-     * @param appContext
+     * @param context
      * @param userId
      * @param userToken
      * @param lid
      * @return
      */
-    public static boolean getLiveSub(AppContext appContext, int userId, String userToken, int lid) {
+    public static boolean getLiveSub(Context context, int userId, String userToken, int lid) {
         boolean isSub = false;
 
         try {
@@ -447,7 +444,7 @@ public class AppClient {
                 int code = object.getIntValue("issub");
                 if (code == 1) {
                     isSub = true;
-                    MobclickAgent.onEvent(appContext, "NetWorkRequest_Action:getlivesub");
+                    MobclickAgent.onEvent(context, "NetWorkRequest_Action:getlivesub");
                 }
             }
         } catch (Exception e) {
@@ -460,13 +457,13 @@ public class AppClient {
 
     /**
      * 订阅直播
-     * @param appContext
+     * @param context
      * @param userId
      * @param userToken
      * @param lid
      * @return
      */
-    public static boolean postLiveSub(AppContext appContext, int userId, String userToken, int lid) {
+    public static boolean postLiveSub(Context context, int userId, String userToken, int lid) {
         boolean isSuccess = false;
 
         try {
@@ -484,7 +481,7 @@ public class AppClient {
                 int code = object.getIntValue("success");
                 if (code == 1) {
                     isSuccess = true;
-                    MobclickAgent.onEvent(appContext, "NetWorkRequest_Action:postlivesub");
+                    MobclickAgent.onEvent(context, "NetWorkRequest_Action:postlivesub");
                 }
             }
         } catch (Exception e) {
@@ -497,13 +494,13 @@ public class AppClient {
 
     /**
      * 取消订阅
-     * @param appContext
+     * @param context
      * @param userId
      * @param userToken
      * @param lid
      * @return
      */
-    public static boolean delLiveSub(AppContext appContext, int userId, String userToken, int lid) {
+    public static boolean delLiveSub(Context context, int userId, String userToken, int lid) {
         boolean isSuccess = false;
 
         try {
@@ -521,7 +518,7 @@ public class AppClient {
                 int code = object.getIntValue("success");
                 if (code == 1) {
                     isSuccess = true;
-                    MobclickAgent.onEvent(appContext, "NetWorkRequest_Action:dellivesub");
+                    MobclickAgent.onEvent(context, "NetWorkRequest_Action:dellivesub");
                 }
             }
         } catch (Exception e) {
