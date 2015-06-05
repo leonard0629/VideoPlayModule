@@ -33,15 +33,34 @@ public class AppContext extends Application {
         EventBus.getDefault().register(this);
     }
 
+    public int getLoginUserId() {
+        return -1;
+    }
+
+    public String getLoginUserToken() {
+        return "";
+    }
+
     /**
-     * 读取SharedPreferences
-     * @param key
-     * @param defaultValue
+     * 设置默认视频清晰度
+     * @param resolution
      * @return
      */
-    public String getPrefs(String key, String defaultValue) {
+    public void setResolution(int resolution) {
         SharedPreferences sp = getSharedPreferences(CFG_SETTING, Context.MODE_PRIVATE);
-        return sp.getString(key, defaultValue);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putInt("resolution", resolution);
+        editor.commit();
+    }
+
+    /**
+     * 读取默认视频清晰度
+     * @param defaultResolution
+     * @return
+     */
+    public int getResolution(int defaultResolution) {
+        SharedPreferences sp = getSharedPreferences(CFG_SETTING, Context.MODE_PRIVATE);
+        return sp.getInt("resolution", defaultResolution);
     }
 
     /**

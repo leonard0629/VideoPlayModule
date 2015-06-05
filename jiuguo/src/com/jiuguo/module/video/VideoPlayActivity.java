@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.*;
 import com.jiuguo.app.bean.NewVideoUrl;
+import com.jiuguo.app.bean.UrlBean;
 import com.jiuguo.app.bean.Video;
 import com.jiuguo.app.core.AppClient;
 import com.jiuguo.app.core.AppContext;
@@ -30,6 +31,7 @@ import io.vov.vitamio.widget.VideoView;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by leonard on 2015/5/20.
@@ -44,11 +46,14 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
 
     private Video video;
     private int mode;
-    private String mUri;
-    private String[] mUris;
+    private String playUrl;
+    private String[] playUrls;
 
     private int mScreenWidth;
     private int mScreenHeight;
+
+    private String tmpResolutionName = "高清";
+    private int tmpResolutionNumber = 0 ;
 
     private ImageButton ibBack;
     private ImageButton ibComment;
@@ -95,9 +100,9 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         mScreenWidth = getResources().getDisplayMetrics().widthPixels;
         mScreenHeight = getResources().getDisplayMetrics().heightPixels;
 
+        handleIntent();
         initView();
         initVideo();
-        handleIntent();
 
         monitorBatteryState();
     }
@@ -421,22 +426,65 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                 break;
             }
         }
+
+        if(playUrls == null){
+            Uri uri = Uri.parse(playUrl);
+            mVideoView.setVideoURI(uri);
+        } else{
+            mVideoView.setVideoURI(playUrls, appContext.getCacheSavePath());
+        }
     }
 
     private void getNetVideoUrl() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        NewVideoUrl url = null;
+        NewVideoUrl videoUrl = null;
         try {
             Date date = sdf.parse(video.getPostDate());
             Date today = new Date();
             int diff = (int) ((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
             if (diff < 1) {
-                int resolution = appContext.getPrefs("resolution", 2);
+                int resolution = appContext.getResolution(2);
                 String format = ResolutionUtils.formatResolution(resolution);
-                url = AppClient.getNewYoukuUrl(appContext, video.getCheckId(), format);
+                videoUrl = AppClient.getNewYoukuUrl(appContext,appContext.getLoginUserId(), video.getCheckId(), format);
             } else {
-                url = AppClient.getYoukuUrl(appContext, video.getId(), video.getCheckId(), appContext.getLoginId(), appContext.getLoginToken());
+                videoUrl = AppClient.getYoukuUrl(appContext, video.getId(), video.getCheckId(), appContext.getLoginUserId(), appContext.getLoginUserToken());
             }
+
+            List<UrlBean> urlBeans = videoUrl.getListUrl();
+            if(urlBeans != null && urlBeans.size() > 0) {
+                String url = urlBeans.get(urlBeans.size() - 1).getUrl();
+                tmpResolutionName =  urlBeans.get(urlBeans.size() - 1).getShowName();
+                tmpResolutionNumber = urlBeans.size() - 1;
+                UrlBean tmpUrlBean = null;
+                int resolution = appContext.getResolution(2);
+                switch (resolution) {
+                    case 0:
+                        tmpUrlBean = videoUrl.getUrlBean("flv");
+                        break;
+                    case 1:
+                        tmpUrlBean = videoUrl.getUrlBean("mp4");
+                        break;
+                    case 2:
+                        tmpUrlBean = videoUrl.getUrlBean("hd2");
+                        break;
+                    case 3:
+                        tmpUrlBean = videoUrl.getUrlBean("hd3");
+                        break;
+                }
+                if (tmpUrlBean != null) {
+                    url = tmpUrlBean.getUrl();
+                    tmpResolutionName = tmpUrlBean.getShowName();
+                    for(int i = 0 ; i<urlBeans.size() ;i++){
+                        if(tmpUrlBean.getShowName().equals(urlBeans.get(i).getShowName())){
+                            tmpResolutionNumber = i;
+                            break;
+                        }
+                    }
+                }
+                playUrl = url;
+                playUrls = videoUrl.getPlaylist();
+            }
+
         } catch (Exception e) {
             Log.e(TAG, "get exception when getNetVideoUrl, cause: " + e.getMessage());
             e.printStackTrace();
