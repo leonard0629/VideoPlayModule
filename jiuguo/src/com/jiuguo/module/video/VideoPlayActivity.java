@@ -7,9 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.os.BatteryManager;
-import android.os.Bundle;
-import android.os.Environment;
+import android.os.*;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -46,6 +44,10 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     private static final int MODE_LOCAL = 1;
     private static final int MODE_LIVE = 2;
 
+    private int userId;
+    private String userToken;
+    private int resolution;
+
     private Video video;
     private int mode;
     private String playUrl;
@@ -77,6 +79,28 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
 
     private Context mContext;
 
+    private final static int MSG_GET_NET_URL = 0;
+    private final static int MSG_GET_LOCAL_URL = 1;
+    private final static int MSG_GET_LIVE_URL = 2;
+
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_GET_NET_URL : {
+                    handleNetUrl((NewVideoUrl) msg.obj);
+                    break;
+                }
+                case MSG_GET_LOCAL_URL : {
+                    break;
+                }
+                case MSG_GET_LIVE_URL : {
+                    break;
+                }
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,9 +128,11 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         mScreenWidth = getResources().getDisplayMetrics().widthPixels;
         mScreenHeight = getResources().getDisplayMetrics().heightPixels;
 
-        handleIntent();
         initView();
+        initData();
         initVideo();
+
+        handleIntent();
 
         monitorBatteryState();
     }
@@ -181,6 +207,12 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
             Log.e(TAG, "名为：video_controller的MediaController不存在!请检查代码");
         }
 
+        int tvTitleId = UZResourcesIDFinder.getResIdID("video_title");
+        if(tvTitleId > 0) {
+            tvTitle = (TextView) findViewById(tvTitleId);
+        } else {
+            Log.e(TAG, "名为：video_battery_level的TextView不存在!请检查代码");
+        }
         int tvBatteryId = UZResourcesIDFinder.getResIdID("video_battery_level");
         if(tvBatteryId > 0) {
             tvBattery = (TextView) findViewById(tvBatteryId);
@@ -223,9 +255,6 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                 VideoPlayActivity.this.finish();
             }
         });
-//        mTitleTextView = (TextView) findViewById(R.id.video_title);
-//        mTitleTextView.setText(videoTitle);
-
     }
 
     private void initVideo() {
@@ -270,7 +299,6 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
 //                recordTime();
 //                isComplete = true;
 //                VideoPlay.this.finish();
-
             }
         });
 
@@ -396,24 +424,25 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
 //                }
                 return true;
             }});
+    }
 
-        if(playUrls == null){
-            Uri uri = Uri.parse(playUrl);
-            mVideoView.setVideoURI(uri);
-        } else{
-            mVideoView.setVideoURI(playUrls, CommonUtils.getCacheSavePath());
-        }
+    private void initData() {
+        userId = CommonUtils.getLoginUserId(mContext);
+        userToken = CommonUtils.getLoginUserToken(mContext);
+        resolution = CommonUtils.getResolution(mContext, 2);
     }
 
     private void handleIntent() {
         video = (Video) getIntent().getSerializableExtra("video");
         mode = getIntent().getIntExtra("mode", MODE_NET);
 
-        if(video != null) {
+        if(video == null) {
             CommonUtils.toast(mContext, "无视频信息", Toast.LENGTH_SHORT);
             VideoPlayActivity.this.finish();
             return;
         }
+
+        tvTitle.setText(video.getTitle());
 
         switch (mode) {
             case MODE_NET: {
@@ -433,56 +462,34 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
 
     private void getNetVideoUrl() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        NewVideoUrl videoUrl = null;
         try {
-            int userId = CommonUtils.getLoginUserId(mContext);
-            String userToken = CommonUtils.getLoginUserToken(mContext);
-            int resolution = CommonUtils.getResolution(mContext, 2);
-
             Date date = sdf.parse(video.getPostDate());
             Date today = new Date();
             int diff = (int) ((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
             if (diff < 1) {
-                String format = ResolutionUtils.formatResolution(resolution);
-                videoUrl = AppClient.getNewYoukuUrl(mContext, userId, video.getCheckId(), format);
-            } else {
-                videoUrl = AppClient.getYoukuUrl(mContext, video.getId(), video.getCheckId(), userId, userToken);
-            }
-
-            List<UrlBean> urlBeans = videoUrl.getListUrl();
-            if(urlBeans != null && urlBeans.size() > 0) {
-                String url = urlBeans.get(urlBeans.size() - 1).getUrl();
-                tmpResolutionName =  urlBeans.get(urlBeans.size() - 1).getShowName();
-                tmpResolutionNumber = urlBeans.size() - 1;
-                UrlBean tmpUrlBean = null;
-                switch (resolution) {
-                    case 0:
-                        tmpUrlBean = videoUrl.getUrlBean("flv");
-                        break;
-                    case 1:
-                        tmpUrlBean = videoUrl.getUrlBean("mp4");
-                        break;
-                    case 2:
-                        tmpUrlBean = videoUrl.getUrlBean("hd2");
-                        break;
-                    case 3:
-                        tmpUrlBean = videoUrl.getUrlBean("hd3");
-                        break;
-                }
-                if (tmpUrlBean != null) {
-                    url = tmpUrlBean.getUrl();
-                    tmpResolutionName = tmpUrlBean.getShowName();
-                    for(int i = 0 ; i<urlBeans.size() ;i++){
-                        if(tmpUrlBean.getShowName().equals(urlBeans.get(i).getShowName())){
-                            tmpResolutionNumber = i;
-                            break;
-                        }
+                final String format = ResolutionUtils.formatResolution(resolution);
+                new Thread() {
+                    @Override
+                    public void run() {
+                        NewVideoUrl videoUrl = AppClient.getNewYoukuUrl(mContext, userId, video.getCheckId(), format);
+                        Message msg = new Message();
+                        msg.what = MSG_GET_NET_URL;
+                        msg.obj = videoUrl;
+                        mHandler.sendMessage(msg);
                     }
-                }
-                playUrl = url;
-                playUrls = videoUrl.getPlaylist();
+                }.start();
+            } else {
+                new Thread() {
+                    @Override
+                    public void run() {
+                        NewVideoUrl videoUrl = AppClient.getYoukuUrl(mContext, video.getId(), video.getCheckId(), userId, userToken);
+                        Message msg = new Message();
+                        msg.what = MSG_GET_NET_URL;
+                        msg.obj = videoUrl;
+                        mHandler.sendMessage(msg);
+                    }
+                }.start();
             }
-
         } catch (Exception e) {
             Log.e(TAG, "get exception when getNetVideoUrl, cause: " + e.getMessage());
             e.printStackTrace();
@@ -497,41 +504,88 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         new Thread() {
             @Override
             public void run() {
-//                try {
-
-//                    NewVideoUrl zhanqiUrl = AppClientV2.getLiveUrl(mContext, tmp.getId());
-//                    if (zhanqiUrl != null) {
-//                        zhanqiUrl.setVideoId(tmp.getId());
-//                        zhanqiUrl.setTitle(tmp.getTitle());
-//                        Message msg = Message.obtain();
-//                        msg.what = JGConstant.LiveVideo;
-//                        Bundle bundle = new Bundle();
-//                        bundle.putSerializable("url", zhanqiUrl);
-//                        bundle.putString("imageUrl", tmp.getImage());
-//                        msg.setData(bundle);
-//                        handler.sendMessage(msg);
-//                    } else {
-//                        handler.post(new Runnable() {
-//
-//                            @Override
-//                            public void run() {
-//                                mContext.toast("主播可能正在休息哦，不信再点一下", Toast.LENGTH_SHORT);
-//                            }
-//                        });
-//                    }
-//                } catch (Exception e) {
-//                    // TODO: handle exception
-//                    handler.post(new Runnable() {
-//
-//                        @Override
-//                        public void run() {
-//                            mContext.toast(R.string.server_connect_failed, Toast.LENGTH_SHORT);
-//                        }
-//                    });
-//                }
+                try {
+                    Long videoId = video.getId();
+                    if(videoId != null) {
+                        NewVideoUrl videoUrl = AppClient.getLiveUrl(mContext, videoId.intValue());
+                        Message msg = new Message();
+                        msg.what = MSG_GET_LIVE_URL;
+                        msg.obj = videoUrl;
+                        mHandler.sendMessage(msg);
+                    } else {
+                        CommonUtils.toast(mContext, "主播可能正在休息哦", Toast.LENGTH_SHORT);
+                        VideoPlayActivity.this.finish();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e(TAG, "get exception when getLiveVideoUrl, cause: " + e.getMessage());
+                }
             }
 
         }.start();
+    }
+
+    private void handleNetUrl(NewVideoUrl videoUrl) {
+        List<UrlBean> urlBeans = videoUrl.getListUrl();
+        if(urlBeans != null && urlBeans.size() > 0) {
+            String url = urlBeans.get(urlBeans.size() - 1).getUrl();
+            tmpResolutionName =  urlBeans.get(urlBeans.size() - 1).getShowName();
+            tmpResolutionNumber = urlBeans.size() - 1;
+            UrlBean tmpUrlBean = null;
+            switch (resolution) {
+                case 0:
+                    tmpUrlBean = videoUrl.getUrlBean("flv");
+                    break;
+                case 1:
+                    tmpUrlBean = videoUrl.getUrlBean("mp4");
+                    break;
+                case 2:
+                    tmpUrlBean = videoUrl.getUrlBean("hd2");
+                    break;
+                case 3:
+                    tmpUrlBean = videoUrl.getUrlBean("hd3");
+                    break;
+            }
+            if (tmpUrlBean != null) {
+                url = tmpUrlBean.getUrl();
+                tmpResolutionName = tmpUrlBean.getShowName();
+                for(int i = 0 ; i<urlBeans.size() ;i++){
+                    if(tmpUrlBean.getShowName().equals(urlBeans.get(i).getShowName())){
+                        tmpResolutionNumber = i;
+                        break;
+                    }
+                }
+            }
+            playUrl = url;
+            playUrls = videoUrl.getPlaylist();
+        }
+
+        setVideoUrl();
+    }
+
+    private void handleLiveUrl(NewVideoUrl videoUrl) {
+        if(videoUrl != null) {
+            playUrls = videoUrl.getPlaylist();
+            setVideoUrl();
+        } else {
+            CommonUtils.toast(mContext, "主播可能正在休息哦", Toast.LENGTH_SHORT);
+            VideoPlayActivity.this.finish();
+        }
+    }
+
+    private void setVideoUrl() {
+        if(playUrls != null && playUrls.length > 0){
+            mVideoView.setVideoURI(playUrls, CommonUtils.getCacheSavePath());
+        } else {
+            if(playUrl != null && !"".equals(playUrl)) {
+                Uri uri = Uri.parse(playUrl);
+                mVideoView.setVideoURI(uri);
+            } else {
+                CommonUtils.toast(mContext, "无视频信息", Toast.LENGTH_SHORT);
+                VideoPlayActivity.this.finish();
+                return;
+            }
+        }
     }
 
     private void monitorBatteryState() {

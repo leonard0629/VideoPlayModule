@@ -2,16 +2,16 @@ package com.jiuguo.app.utils;
 
 public class ResolutionUtils {
     public static String changeResolution(int resolution){
-        String resolutionS = "超清";
+        String resolutionS = "瓒呮竻";
         switch(resolution){
             case 0:
-                resolutionS = "标清";
+                resolutionS = "鏍囨竻";
                 break;
             case 1:
-                resolutionS = "高清";
+                resolutionS = "楂樻竻";
                 break;
             case 2:
-                resolutionS = "超清";
+                resolutionS = "瓒呮竻";
                 break;
             case 3:
                 resolutionS = "1080P";
