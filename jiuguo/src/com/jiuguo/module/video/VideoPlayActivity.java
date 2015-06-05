@@ -95,6 +95,7 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                     break;
                 }
                 case MSG_GET_LIVE_URL : {
+                    handleLiveUrl((NewVideoUrl) msg.obj);
                     break;
                 }
             }
@@ -497,7 +498,8 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     }
 
     private void getLocalVideoUrl() {
-
+        int checkId = video.getCheckId();
+        dbManager.s
     }
 
     private void getLiveVideoUrl() {
@@ -521,7 +523,6 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                     Log.e(TAG, "get exception when getLiveVideoUrl, cause: " + e.getMessage());
                 }
             }
-
         }.start();
     }
 

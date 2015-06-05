@@ -45,6 +45,61 @@ public class DatabaseManager {
 		}
 	}
 
+	public VideoLoad queryVideoLoad(int checkId) {
+        VideoLoad videoLoad = null;
+        if(checkId != - 1) {
+            Cursor cursor = null;
+            try {
+                cursor = database.rawQuery("select * from video where checkid=?", new String[]{checkId + ""});
+                if (cursor.moveToNext()) {
+                    videoLoad = new VideoLoad();
+                    videoLoad.setId(cursor.getLong(cursor.getColumnIndex("videoid")));
+                    videoLoad.setTitle(cursor.getString(cursor.getColumnIndex("title")));
+                    videoLoad.setDescribe(cursor.getString(cursor.getColumnIndex("describe")));
+                    videoLoad.setDuration(cursor.getInt(cursor.getColumnIndex("duration")));
+                    videoLoad.setPostDate(cursor.getString(cursor.getColumnIndex("postdate")));
+                    videoLoad.setPosterId(cursor.getInt(cursor.getColumnIndex("posterid")));
+                    videoLoad.setPosterName(cursor.getString(cursor.getColumnIndex("postername")));
+                    videoLoad.setImage(cursor.getString(cursor.getColumnIndex("imageUrl")));
+                    videoLoad.setPlayCount(cursor.getInt(cursor.getColumnIndex("playCount")));
+                    videoLoad.setFavourCount(cursor.getInt(cursor.getColumnIndex("favourcount")));
+                    videoLoad.setBookCount(cursor.getInt(cursor.getColumnIndex("bookcount")));
+                    videoLoad.setCheckId(cursor.getInt(cursor.getColumnIndex("checkid")));
+                    videoLoad.setFileUrl(cursor.getString(cursor
+                            .getColumnIndex(VIDEO_FILEURL)));
+                    videoLoad.setDownLoadSize(cursor.getInt(cursor
+                            .getColumnIndex(VIDEO_DOWNLOADSIZE)));
+                    videoLoad.setDownLoadPart(cursor.getInt(cursor
+                            .getColumnIndex(VIDEO_DOWNLOADPART)));
+                    videoLoad.setTotalSize(cursor.getInt(cursor
+                            .getColumnIndex(VIDEO_TOTALSIZE)));
+					/*videoLoad.setPosterlogo(cursor.getString(cursor
+							.getColumnIndex(VIDEO_POSTERLOGO)));*/
+                    videoLoad.setFinish((cursor.getInt(cursor
+                            .getColumnIndex(VIDEO_ISFINISH))) > 0);
+                    videoLoad
+                            .setStart((cursor.getInt(cursor
+                                    .getColumnIndex(VIDEO_ISSTART))) > 0);
+                    videoLoad.setType((cursor.getInt(cursor.getColumnIndex(VIDEO_TYPE))));
+                    videoLoad.setNew((cursor.getInt(cursor
+                            .getColumnIndex(VIDEO_ISNEW))) > 0);
+					/*					String m3u8Query = "select * from m3u8 where "
+							+ M3U8_VIDEOID + "=" + videoLoad.getId();
+					videoLoad
+							.setM3u8s((ArrayList<M3U8>) queryM3u8ForList(m3u8Query));*/
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.e(TAG, "catch exception when query all search history, cause: " + e.getMessage());
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        }
+        return videoLoad;
+	}
+
 	/**
 	 * 新增缓存记录
 	 * @param videoLoad
