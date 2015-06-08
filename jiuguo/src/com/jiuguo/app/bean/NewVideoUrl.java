@@ -26,7 +26,7 @@ public class NewVideoUrl extends BaseBean {
 
     private String[] playlist;
     /**
-     * 用于判断是用旧接口还是新接口
+     * 鐢ㄤ簬鍒ゆ柇鏄敤鏃ф帴鍙ｈ繕鏄柊鎺ュ彛
      */
     private boolean isNew;
 
@@ -93,21 +93,21 @@ public class NewVideoUrl extends BaseBean {
             if(sizeInfo.containsKey("normal")&&sizeInfo.getLong("normal")!=0){
                 UrlBean urlBean = new UrlBean();
                 urlBean.setType("flv");
-                urlBean.setShowName("标清");
+                urlBean.setShowName("鏍囨竻");
                 urlBean.setSize((int) ((sizeInfo.getLong("normal") / 1024 / 1024)));
                 listUrl.add(urlBean);
             }
             if(sizeInfo.containsKey("high")&&sizeInfo.getLong("high")!=0){
                 UrlBean urlBean = new UrlBean();
                 urlBean.setType("mp4");
-                urlBean.setShowName("高清");
+                urlBean.setShowName("楂樻竻");
                 urlBean.setSize((int) ((sizeInfo.getLong("high") / 1024 / 1024)));
                 listUrl.add(urlBean);
             }
             if(sizeInfo.containsKey("super")&&sizeInfo.getLong("super")!=0){
                 UrlBean urlBean = new UrlBean();
                 urlBean.setType("hd2");
-                urlBean.setShowName("超清");
+                urlBean.setShowName("瓒呮竻");
                 urlBean.setSize((int) ((sizeInfo.getLong("super") / 1024 / 1024)));
                 listUrl.add(urlBean);
             }

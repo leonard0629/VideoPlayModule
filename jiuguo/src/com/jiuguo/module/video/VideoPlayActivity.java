@@ -11,10 +11,7 @@ import android.os.*;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageButton;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 import com.jiuguo.app.bean.NewVideoUrl;
 import com.jiuguo.app.bean.UrlBean;
 import com.jiuguo.app.bean.Video;
@@ -44,9 +41,15 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     private static final int MODE_LOCAL = 1;
     private static final int MODE_LIVE = 2;
 
+    private static final int APPLE_GET_NUMBER = 0;
+    private static final int APPLE_SEND_SUCCESS = 1;
+    private static final int APPLE_SEND_FAILED = 2;
+
     private int userId;
     private String userToken;
     private int resolution;
+    private boolean isComplete = false;
+    private int videoId;
 
     private Video video;
     private int mode;
@@ -64,6 +67,10 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     private TextView tvTitle;
     private TextView tvBattery;
 
+    private TextView tvAppleNum;
+    private ImageView ivApple;
+    private ImageView ivAppleTips;
+
     private VideoView mVideoView;
     private ProgressBar pb;
     private TextView downloadRateView;
@@ -79,9 +86,9 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
 
     private Context mContext;
 
-    private final static int MSG_GET_NET_URL = 0;
-    private final static int MSG_GET_LOCAL_URL = 1;
-    private final static int MSG_GET_LIVE_URL = 2;
+    private final static int MSG_GET_LIVE_URL = 0;
+    private final static int MSG_GET_NET_URL = 1;
+    private final static int MSG_GET_LOCAL_URL = 2;
 
     private Handler mHandler = new Handler() {
         @Override
@@ -96,6 +103,29 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                 }
                 case MSG_GET_LIVE_URL : {
                     handleLiveUrl((NewVideoUrl) msg.obj);
+                    break;
+                }
+            }
+        }
+    };
+
+    private Handler appleNumberHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case APPLE_GET_NUMBER : {
+                    tvAppleNum.setText("" + msg.obj);
+                    ivApple.setClickable(true);
+                    break;
+                }
+                case APPLE_SEND_SUCCESS : {
+                    CommonUtils.toast(mContext, "赠送小苹果成功！！", Toast.LENGTH_SHORT);
+                    getApple();
+                    break;
+                }
+                case APPLE_SEND_FAILED : {
+                    CommonUtils.toast(mContext, "赠送小苹果失败，可能金币不足！！", Toast.LENGTH_SHORT);
+                    getApple();
                     break;
                 }
             }
@@ -214,6 +244,31 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         } else {
             Log.e(TAG, "名为：video_battery_level的TextView不存在!请检查代码");
         }
+        int ivAppleId = UZResourcesIDFinder.getResIdID("video_apple");
+        if(ivAppleId > 0) {
+            ivApple = (ImageView) findViewById(ivAppleId);
+            ivApple.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ivApple.setClickable(false);
+                    postApple();
+                }
+            });
+        } else {
+            Log.e(TAG, "名为：video_apple的ImageView不存在!请检查代码");
+        }
+        int ivAppleTipsId = UZResourcesIDFinder.getResIdID("video_apple_tips");
+        if(ivAppleTipsId > 0) {
+            ivAppleTips = (ImageView) findViewById(ivAppleTipsId);
+        } else {
+            Log.e(TAG, "名为：video_apple_tips的ImageView不存在!请检查代码");
+        }
+        int tvAppleNumId = UZResourcesIDFinder.getResIdID("apple_number");
+        if(tvAppleNumId > 0) {
+            tvAppleNum = (TextView) findViewById(tvAppleNumId);
+        } else {
+            Log.e(TAG, "名为：apple_number的TextView不存在!请检查代码");
+        }
         int tvBatteryId = UZResourcesIDFinder.getResIdID("video_battery_level");
         if(tvBatteryId > 0) {
             tvBattery = (TextView) findViewById(tvBatteryId);
@@ -247,7 +302,7 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         ibBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                recordTime();
+                recordTime();
                 try{
                     Thread.sleep(100);
                 }catch(Exception e){
@@ -297,9 +352,9 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-//                recordTime();
-//                isComplete = true;
-//                VideoPlay.this.finish();
+                recordTime();
+                isComplete = true;
+                VideoPlayActivity.this.finish();
             }
         });
 
@@ -437,6 +492,8 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         video = (Video) getIntent().getSerializableExtra("video");
         mode = getIntent().getIntExtra("mode", MODE_NET);
 
+        mVideoView.setMode(mode);
+
         if(video == null) {
             CommonUtils.toast(mContext, "无视频信息", Toast.LENGTH_SHORT);
             VideoPlayActivity.this.finish();
@@ -473,6 +530,7 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                     @Override
                     public void run() {
                         NewVideoUrl videoUrl = AppClient.getNewYoukuUrl(mContext, userId, video.getCheckId(), format);
+                        videoId = videoUrl.getVideoId();
                         Message msg = new Message();
                         msg.what = MSG_GET_NET_URL;
                         msg.obj = videoUrl;
@@ -484,6 +542,7 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                     @Override
                     public void run() {
                         NewVideoUrl videoUrl = AppClient.getYoukuUrl(mContext, video.getId(), video.getCheckId(), userId, userToken);
+                        videoId = videoUrl.getVideoId();
                         Message msg = new Message();
                         msg.what = MSG_GET_NET_URL;
                         msg.obj = videoUrl;
@@ -498,8 +557,8 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     }
 
     private void getLocalVideoUrl() {
-        int checkId = video.getCheckId();
-        dbManager.s
+        //TODO
+        //
     }
 
     private void getLiveVideoUrl() {
@@ -507,9 +566,10 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
             @Override
             public void run() {
                 try {
-                    Long videoId = video.getId();
-                    if(videoId != null) {
-                        NewVideoUrl videoUrl = AppClient.getLiveUrl(mContext, videoId.intValue());
+                    Long id = video.getId();
+                    if(id != null) {
+                        NewVideoUrl videoUrl = AppClient.getLiveUrl(mContext, id.intValue());
+                        videoId = videoUrl.getVideoId();
                         Message msg = new Message();
                         msg.what = MSG_GET_LIVE_URL;
                         msg.obj = videoUrl;
@@ -622,6 +682,79 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         registerReceiver(batteryReceiver, batteryFilter);
     }
 
+    /**
+     * 记录播放历史
+     */
+    public void recordTime(){
+        if(isComplete) return;
+        try {
+            Video video;
+            if(mode == MODE_LOCAL || mode == MODE_NET){
+                video = dbManager.queryRecordVideo(videoId, false);
+                if (mController != null && mController.getMediaPlayer() != null) {
+                    int recordTime;
+                    if(mController.getMediaPlayer().getCurrentPosition() >= mController.getMediaPlayer().getDuration()) {
+                        recordTime = Integer.MAX_VALUE;
+                    } else {
+                        recordTime = (int) (mController.getMediaPlayer().getCurrentPosition() / 1000);
+                    }
+                    video.setRecordTime(recordTime);
+                }
+            } else {
+                video = dbManager.queryRecordVideo(videoId, true);
+            }
+
+            video.setLastTime(new Date());
+            dbManager.updateRecordVideo(video);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(TAG, "catch exception when record time, cause: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 发送苹果
+     */
+    private void postApple(){
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    boolean isSuccess = AppClient.postApple(mContext, userId, userToken, videoId);
+                    if (isSuccess) {
+                        appleNumberHandler.sendEmptyMessage(APPLE_SEND_SUCCESS);
+                    } else {
+                        appleNumberHandler.sendEmptyMessage(APPLE_SEND_FAILED);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e(TAG, "catch exception when post apple, cause: " + e.getMessage());
+
+                }
+            }
+        }.start();
+    }
+
+    /**
+     * 获取苹果数量
+     */
+    private void getApple(){
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Message msg = new Message();
+                    msg.what = APPLE_GET_NUMBER;
+                    msg.obj = AppClient.getApple(mContext, videoId);
+                    appleNumberHandler.sendMessage(msg);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e(TAG, "catch exception when get apple, cause: " + e.getMessage());
+                }
+            }
+        }.start();
+    }
     @Override
     public boolean onInfo(MediaPlayer mp, int what, int extra) {
         Log.i(TAG,"onInfo");

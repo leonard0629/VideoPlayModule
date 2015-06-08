@@ -931,10 +931,10 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 	  void onSeekTo(VideoView view, MediaPlayer mp, long duration);
 	  void onStop(VideoView view, MediaPlayer mp, long duration);
   }
-  
-  public static final int MODE_NET = 0;
-  public static final int MODE_LOCAL = 1;
-  public static final int MODE_LIVE = 2;
+
+  public static final int MODE_LIVE = 0;
+  public static final int MODE_NET = 1;
+  public static final int MODE_LOCAL = 2;
   private int playMode = MODE_NET;
   
   public void setMode(int playMode){
