@@ -11,13 +11,12 @@ public class VideoLoad extends Video {
     private String fileUrl = "";
 
     //下载总片数
-    private int totalPart = 0;
+    private int downLoadSize = 0;
     //已完成片数
-    private int downloadPart = 0;
-    //下载总大小
+    private int downLoadPart = 0;
     private int totalSize = Integer.MAX_VALUE;
-    //已下载大小
-    private int downloadSize = 0;
+    private int currentSize = 0;
+
     private boolean isFinish = false;
     private boolean isStart = true;
     private int type = MP4;
@@ -49,20 +48,20 @@ public class VideoLoad extends Video {
         this.fileUrl = fileUrl;
     }
 
-    public int getTotalPart() {
-        return totalPart;
+    public int getDownLoadSize() {
+        return downLoadSize;
     }
 
-    public void setTotalPart(int totalPart) {
-        this.totalPart = totalPart;
+    public void setDownLoadSize(int downLoadSize) {
+        this.downLoadSize = downLoadSize;
     }
 
-    public int getDownloadPart() {
-        return downloadPart;
+    public int getDownLoadPart() {
+        return downLoadPart;
     }
 
-    public void setDownloadPart(int downloadPart) {
-        this.downloadPart = downloadPart;
+    public void setDownLoadPart(int downLoadPart) {
+        this.downLoadPart = downLoadPart;
     }
 
     public int getTotalSize() {
@@ -73,19 +72,19 @@ public class VideoLoad extends Video {
         this.totalSize = totalSize;
     }
 
-    public int getDownloadSize() {
-        return downloadSize;
+    public int getCurrentSize() {
+        return currentSize;
     }
 
-    public void setDownloadSize(int downloadSize) {
-        this.downloadSize = downloadSize;
+    public void setCurrentSize(int currentSize) {
+        this.currentSize = currentSize;
     }
 
     public boolean isFinish() {
         return isFinish;
     }
 
-    public void setFinish(boolean isFinish) {
+    public void setIsFinish(boolean isFinish) {
         this.isFinish = isFinish;
     }
 
@@ -93,7 +92,7 @@ public class VideoLoad extends Video {
         return isStart;
     }
 
-    public void setStart(boolean isStart) {
+    public void setIsStart(boolean isStart) {
         this.isStart = isStart;
     }
 
@@ -109,7 +108,7 @@ public class VideoLoad extends Video {
         return isNew;
     }
 
-    public void setNew(boolean isNew) {
+    public void setIsNew(boolean isNew) {
         this.isNew = isNew;
     }
 
@@ -120,5 +119,4 @@ public class VideoLoad extends Video {
     public void setUrl(String url) {
         this.url = url;
     }
-
 }

@@ -31,7 +31,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + "isfinish numeric,"
             + "isstart numeric,"
             + "downloadpart integer,"
-            + "totalpart integer,"
+            + "currentpart integer"
             + "type integer,"
             + "isnew numeric);";
 
@@ -75,11 +75,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Log.i(TAG, "database upgrade");
 
         if(oldVersion < 31) {
-            //重新创建视频表
-            db.execSQL("drop table video");
-            db.execSQL("drop table loadvideopart");
-            db.execSQL(sql_video);
-            db.execSQL(sql_load_video_partitions);
+            db.execSQL("alter table video add currentsize integer");
         }
     }
 }
