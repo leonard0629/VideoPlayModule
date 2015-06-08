@@ -50,6 +50,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + "content text,"
             + "date text);";
 
+    public static final String record_video = "create table if not exists recordvideo ("
+            + "_id integer primary key autoincrement, "// 0
+            + "videoid integer,"//no usage for record
+            + "title text, "// 1
+            + "describe text, "// 2
+            + "duration integer, "// 3
+            + "postdate text, "// 4
+            + "posterid integer, "// 5
+            + "postername text, "// 6
+            + "imageUrl text, "// 7
+            + "playCount integer, "// 8
+            + "favourcount integer, "// 9
+            + "bookcount integer, "// 10
+            + "checkid integer,"// 11
+            + "posterlogo text,"//12
+            + "recordtime integer,"//13
+            + "lasttime text,"//14
+            + "islive numeric);";//15
+
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -58,6 +77,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(sql_video);
         db.execSQL(sql_load_video_partitions);
+        db.execSQL(record_video);
         db.execSQL(sql_search_history);
     }
 

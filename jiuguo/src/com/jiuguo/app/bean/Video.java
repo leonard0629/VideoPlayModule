@@ -28,6 +28,7 @@ public class Video extends BaseBean {
 	private int recordTime = 0;
 	private int tid = 0;
 	private Date lastTime;
+	private boolean isLive = false;
 
 	public Long getId() {
 		return id;
@@ -133,11 +134,19 @@ public class Video extends BaseBean {
 		this.posterLogo = posterLogo;
 	}
 
+	public int getCommentCount() {
+		return commentCount;
+	}
+
+	public void setCommentCount(int commentCount) {
+		this.commentCount = commentCount;
+	}
+
 	public boolean isBooked() {
 		return isBooked;
 	}
 
-	public void setBooked(boolean isBooked) {
+	public void setIsBooked(boolean isBooked) {
 		this.isBooked = isBooked;
 	}
 
@@ -145,16 +154,8 @@ public class Video extends BaseBean {
 		return isCollected;
 	}
 
-	public void setCollected(boolean isCollected) {
+	public void setIsCollected(boolean isCollected) {
 		this.isCollected = isCollected;
-	}
-
-	public Date getLastTime() {
-		return lastTime;
-	}
-
-	public void setLastTime(Date lastTime) {
-		this.lastTime = lastTime;
 	}
 
 	public String getComment() {
@@ -165,28 +166,12 @@ public class Video extends BaseBean {
 		this.comment = comment;
 	}
 
-	public int getTid() {
-		return tid;
-	}
-
-	public void setTid(int tid) {
-		this.tid = tid;
-	}
-
 	public int getAppleCount() {
 		return appleCount;
 	}
 
-	public void setAppleCount(int i) {
-		this.appleCount = i;
-	}
-
-	public int getCommentCount() {
-		return commentCount;
-	}
-
-	public void setCommentCount(int commentCount) {
-		this.commentCount = commentCount;
+	public void setAppleCount(int appleCount) {
+		this.appleCount = appleCount;
 	}
 
 	public int getRecordTime() {
@@ -195,5 +180,29 @@ public class Video extends BaseBean {
 
 	public void setRecordTime(int recordTime) {
 		this.recordTime = recordTime;
+	}
+
+	public int getTid() {
+		return tid;
+	}
+
+	public void setTid(int tid) {
+		this.tid = tid;
+	}
+
+	public Date getLastTime() {
+		return lastTime;
+	}
+
+	public void setLastTime(Date lastTime) {
+		this.lastTime = lastTime;
+	}
+
+	public boolean isLive() {
+		return isLive;
+	}
+
+	public void setIsLive(boolean isLive) {
+		this.isLive = isLive;
 	}
 }
