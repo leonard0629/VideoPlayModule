@@ -6,8 +6,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.*;
 import android.util.Log;
-import android.view.View;
-import android.view.WindowManager;
+import android.view.*;
 import android.widget.*;
 import com.jiuguo.app.bean.NewVideoUrl;
 import com.jiuguo.app.bean.UrlBean;
@@ -64,6 +63,10 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     private TextView tvTitle;
     private TextView tvBattery;
 
+    private TextView tvResolution;
+    private	ListView lvResolution;
+    private ResolutionAdapter resolutionAdapter;
+
     private TextView tvAppleNum;
     private ImageView ivApple;
     private ImageView ivAppleTips;
@@ -72,6 +75,8 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     private ProgressBar pb;
     private TextView downloadRateView;
     private TextView loadRateView;
+
+    private View mLoadingView;
 
     private MediaController mController;
     private AudioManager audioManager;
@@ -167,6 +172,25 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     }
 
     private void initView() {
+        int loadingLayoutId = UZResourcesIDFinder.getResLayoutID("page_loading");
+        if(loadingLayoutId > 0) {
+            mLoadingView = getLayoutInflater().inflate(loadingLayoutId, null);
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+            params.gravity = Gravity.CENTER;
+            addContentView(mLoadingView, params);
+            mLoadingView.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    CommonUtils.toast(mContext, "正在加载，请稍后。。。", Toast.LENGTH_SHORT);
+                }
+            });
+            mLoadingView.setVisibility(View.VISIBLE);
+        } else {
+            Log.e(TAG, "名为：page_loading的布局文件不存在!请检查代码");
+        }
+
         int videoViewId = UZResourcesIDFinder.getResIdID("video_view");
         if(videoViewId > 0) {
             mVideoView = (VideoView) findViewById(videoViewId);
@@ -313,13 +337,92 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                 VideoPlayActivity.this.finish();
             }
         });
+
+        int lvResolutionId = UZResourcesIDFinder.getResIdID("resolution_lv");
+        if(lvResolutionId > 0) {
+            lvResolution = (ListView)findViewById(lvResolutionId);
+            lvResolution.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                    if(mode == MODE_NET){
+//                        if(position == resolutionAdapter.getCurrentResolution()) {
+//                            return;
+//                        }
+//                        if(videoUrl.isNew()){
+//                            new Thread() {
+//                                @Override
+//                                public void run() {
+//                                    try {
+//                                        NewVideoUrl url = null;
+//                                        String format = ResolutionUtils.formatResolution(position);
+//                                        url = AppClientV2.getNewYoukuUrl(appContext, videoUrl.getVideoId(),
+//                                                format);
+//                                        Message msg = new Message();
+//                                        msg.what = NETRESOLUTION;
+//                                        msg.arg1 = 1;
+//                                        msg.arg2 = position;
+//                                        mUris = url.getPlaylist();
+//                                        mHandler.sendMessage(msg);
+//                                    } catch (Exception e) {
+//                                        // TODO: handle exception
+//                                        e.printStackTrace();
+//                                        Message msg = new Message();
+//                                        msg.what = NETRESOLUTION;
+//                                        msg.arg1 = 2;
+//                                        mHandler.sendMessage(msg);
+//                                    }
+//                                }
+//                            }.start();
+//                        }else{
+//                            UrlBean urlBean = (UrlBean)parent.getItemAtPosition(position);
+//                            resolutionTV.setText(urlBean.getShowName());
+//                            rAdapter.setCurrentResolution(position);
+//                            rAdapter.notifyDataSetChanged();
+//                            resListView.setVisibility(View.GONE);
+//                            mUri = Uri.parse(urlBean.getUrl());
+//                            mLoadingView.setVisibility(View.VISIBLE);
+//                            long currentPosition = mVideoView.getCurrentPosition();
+//                            mVideoView.stopPlayback();
+//                            mVideoView.setVideoURI(mUri);
+//                            mVideoView.seekTo(currentPosition);
+//                            mVideoView.start();
+//                        }
+//                    } else if (mode == MODE_LIVE) {
+//                        UrlBean urlBean = (UrlBean)parent.getItemAtPosition(position);
+//                        tvResolution.setText(urlBean.getShowName());
+//                        resolutionAdapter.setCurrentResolution(position);
+//                        resolutionAdapter.notifyDataSetChanged();
+//                        lvResolution.setVisibility(View.GONE);
+//                        mUri = Uri.parse(urlBean.getUrl());
+//                        mLoadingView.setVisibility(View.VISIBLE);
+//                        mVideoView.stopPlayback();
+//                        mVideoView.setVideoURI(mUri);
+//                    }
+                }
+            });
+        } else {
+            Log.e(TAG, "名为：resolution_lv的ListView不存在!请检查代码");
+        }
+
+        int tvResolutionId = UZResourcesIDFinder.getResIdID("resolution_tv");
+        if(tvResolutionId > 0) {
+            tvResolution = (TextView)findViewById(tvResolutionId);
+            tvResolution.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    lvResolution.setVisibility(lvResolution.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            Log.e(TAG, "名为：resolution_tv的TextView不存在!请检查代码");
+        }
     }
 
     private void initVideo() {
         audioManager.requestAudioFocus(new AudioManager.OnAudioFocusChangeListener(){
             @Override
             public void onAudioFocusChange(int focusChange) {
-                if (focusChange == AudioManager.AUDIOFOCUS_LOSS||focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+                if (focusChange == AudioManager.AUDIOFOCUS_LOSS || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
                     // Pause playback
                     if (mVideoView != null) {
                         try {
@@ -336,8 +439,7 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         mVideoView.setBufferSize(512 * 1024);
         mVideoView.requestFocus();
         mVideoView.setHardwareDecoder(true);
-        String cachePath = Environment.getExternalStorageDirectory() + File.separator + "jiuguo" + File.separator + "cache" + File.separator;
-        mVideoView.setCacheDirectory(cachePath);
+        mVideoView.setCacheDirectory(CommonUtils.getCacheSavePath());
         mVideoView.setOnInfoListener(this);
         mVideoView.setOnBufferingUpdateListener(this);
         mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -359,7 +461,6 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                 VideoPlayActivity.this.finish();
             }
         });
-
         mVideoView.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
 
             @Override
@@ -506,7 +607,7 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
 
         switch (mode) {
             case MODE_NET: {
-                getNetVideoUrl();
+                getNetVideoUrl(null);
                 break;
             }
             case MODE_LOCAL: {
@@ -520,18 +621,21 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
         }
     }
 
-    private void getNetVideoUrl() {
+    private void getNetVideoUrl(String format) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         try {
             Date date = sdf.parse(video.getPostDate());
             Date today = new Date();
             int diff = (int) ((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
             if (diff < 1) {
-                final String format = ResolutionUtils.formatResolution(resolution);
+                if(format == null) {
+                    format = ResolutionUtils.formatResolution(resolution);
+                }
+                final String finalFormat = format;
                 new Thread() {
                     @Override
                     public void run() {
-                        NewVideoUrl videoUrl = AppClient.getNewYoukuUrl(mContext, userId, video.getCheckId(), format);
+                        NewVideoUrl videoUrl = AppClient.getNewYoukuUrl(mContext, userId, video.getCheckId(), finalFormat);
                         videoId = videoUrl.getVideoId();
                         Message msg = new Message();
                         msg.what = MSG_GET_NET_URL;
@@ -639,6 +743,7 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
     private void setVideoUrl() {
         if(playUrls != null && playUrls.length > 0){
             mVideoView.setVideoURI(playUrls, CommonUtils.getCacheSavePath());
+
         } else {
             if(playUrl != null && !"".equals(playUrl)) {
                 Uri uri = Uri.parse(playUrl);
@@ -648,19 +753,22 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                 VideoPlayActivity.this.finish();
                 return;
             }
+
+            tvResolution.setVisibility(View.GONE);
+            lvResolution.setVisibility(View.GONE);
         }
     }
 
     private void monitorBatteryState() {
         batteryReceiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
-                int rawlevel = intent.getIntExtra("level", -1);
+                int rawLevel = intent.getIntExtra("level", -1);
                 int scale = intent.getIntExtra("scale", -1);
                 int status = intent.getIntExtra("status", -1);
                 int health = intent.getIntExtra("health", -1);
                 int level = -1; // percentage, or -1 for unknown
-                if (rawlevel >= 0 && scale > 0) {
-                    level = (rawlevel * 100) / scale;
+                if (rawLevel >= 0 && scale > 0) {
+                    level = (rawLevel * 100) / scale;
                 }
                 if (BatteryManager.BATTERY_HEALTH_OVERHEAT != health) {
                     switch (status) {
@@ -757,6 +865,83 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
             }
         }.start();
     }
+
+    private class ResolutionAdapter extends BaseAdapter{
+        private List<UrlBean> mUrlBeans;
+        private LayoutInflater mLayoutInflater;
+        private int currentResolution;
+
+        public ResolutionAdapter(final List<UrlBean> urlBeans){
+            this.mUrlBeans = urlBeans;
+            this.mLayoutInflater = LayoutInflater.from(mContext);
+            this.currentResolution = mUrlBeans.size() - 1;
+        }
+        @Override
+        public int getCount() {
+            if(mUrlBeans == null){
+                return 0;
+            }
+            return mUrlBeans.size();
+        }
+
+        @Override
+        public UrlBean getItem(int position) {
+            return mUrlBeans.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            ItemView itemView;
+            if (convertView == null) {
+                int layoutId = UZResourcesIDFinder.getResLayoutID("resolution_listitem");
+                if(layoutId > 0) {
+                    convertView = mLayoutInflater.inflate(layoutId, null);
+                } else {
+                    Log.e(TAG, "名为：resolution_listitem的布局文件不存在!请检查代码");
+                }
+
+                itemView = new ItemView();
+
+                int textViewId = UZResourcesIDFinder.getResIdID("resolution_list_tv");
+                if(textViewId > 0) {
+                    itemView.textView = (TextView) convertView.findViewById(textViewId);
+                } else {
+                    Log.e(TAG, "名为：resolution_list_tv的TextView不存在!请检查代码");
+                }
+                convertView.setTag(itemView);
+            } else {
+                itemView = (ItemView) convertView.getTag();
+            }
+            itemView.textView.setText(mUrlBeans.get(position).getShowName());
+
+            int textColorId = -1;
+            if (position == currentResolution) {
+                textColorId = UZResourcesIDFinder.getResColorID("resolution_highlight_text_color");
+            } else {
+                textColorId = UZResourcesIDFinder.getResColorID("resolution_text_color");
+            }
+
+            itemView.textView.setTextColor(mContext.getResources().getColor(textColorId));
+            return convertView;
+        }
+
+        public void setCurrentResolution(int resolution){
+            this.currentResolution = resolution;
+        }
+        public int getCurrentResolution(){
+            return this.currentResolution;
+        }
+
+        private class ItemView {
+            TextView textView;
+        }
+    }
+
     @Override
     public boolean onInfo(MediaPlayer mp, int what, int extra) {
         Log.i(TAG,"onInfo");
