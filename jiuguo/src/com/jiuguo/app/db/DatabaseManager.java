@@ -315,10 +315,10 @@ public class DatabaseManager {
      * @param checkid
      * @return
      */
-    public Video queryRecordVideo(long checkid) {
+    public Video queryRecordVideo(long checkid, boolean isLive) {
         Cursor cursor = null;
         try{
-            cursor = database.rawQuery("SELECT * FROM recordvideo WHERE checkid=?", new String[] { "" + checkid});
+            cursor = database.rawQuery("SELECT * FROM recordvideo WHERE checkid=? AND islive=?", new String[] { "" + checkid, isLive ? "1" : "0"});
             if (cursor.moveToNext()) {
                 Video video = new Video();
                 video.setTitle(cursor.getString(cursor.getColumnIndex("title")));
@@ -361,7 +361,7 @@ public class DatabaseManager {
         database.beginTransaction();
         Cursor c = null;
         try {
-            c = database.rawQuery("SELECT * FROM recordvideo WHERE checkid=?", new String[]{"" + video.getCheckId()});
+            c = database.rawQuery("SELECT * FROM recordvideo WHERE checkid=? AND islive=?", new String[] { "" + video.getCheckId(), video.isLive() ? "1" : "0"});
             if (!c.moveToNext()) {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 String lastTime = video.getLastTime() == null ? "" : sdf.format(video.getLastTime());
@@ -408,7 +408,7 @@ public class DatabaseManager {
             String lastTime = video == null ? "" : sdf.format(video.getLastTime());
             values.put("lasttime", lastTime);
             values.put("islive", video.isLive());
-            database.update("recordvideo", values, "checkid=?", new String[] { "" + video.getCheckId()});
+            database.update("recordvideo", values, "checkid=? AND islive=?", new String[] { "" + video.getCheckId(), video.isLive() ? "1" : "0"});
         } catch (Exception e) {
             e.printStackTrace();
             Log.e(TAG, "catch exception when update record video, cause: " + e.getMessage());
@@ -421,7 +421,7 @@ public class DatabaseManager {
      */
     public void deleteRecordVideo(Video video) {
         try {
-            database.delete("recordvideo", "checkid=?", new String[] { "" + video.getCheckId()});
+            database.delete("recordvideo", "checkid=? AND islive=?", new String[] { "" + video.getCheckId(), video.isLive() ? "1" : "0"});
         } catch (Exception e) {
             e.printStackTrace();
             Log.e(TAG, "catch exception when delete record video, cause: " + e.getMessage());

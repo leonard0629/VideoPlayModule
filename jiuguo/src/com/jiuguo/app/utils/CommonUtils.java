@@ -21,6 +21,10 @@ public class CommonUtils {
     private final static String CFG_SETTING = "setting.cfg";
     private static Toast toast = null;
 
+    private static boolean isLogin = false;
+    private static int userId = -1;
+    private static String userToken = "";
+
     public static int getLoginUserId(Context context) {
         return -1;
     }
@@ -59,6 +63,26 @@ public class CommonUtils {
         } else {
             Log.e(TAG, "名为：ic_launcher的drawable不存在!请检查代码");
         }
+    }
+
+    /**
+     * 用户登录
+     * @return
+     */
+    public static void login(int userId, String userToken) {
+        CommonUtils.isLogin = true;
+        CommonUtils.userId = userId;
+        CommonUtils.userToken = userToken;
+    }
+
+    /**
+     * 用户登出
+     * @return
+     */
+    public static void logout() {
+        CommonUtils.isLogin = false;
+        CommonUtils.userId = -1;
+        CommonUtils.userToken = "";
     }
 
     /**
@@ -140,4 +164,27 @@ public class CommonUtils {
         toast.show();
     }
 
+    /**
+     * 用户是否登录
+     * @return
+     */
+    public static boolean isLogin() {
+        return isLogin;
+    }
+
+    /**
+     * 获取登录用户id
+     * @return
+     */
+    public static int getUserId() {
+        return userId;
+    }
+
+    /**
+     * 获取登录用户token
+     * @return
+     */
+    public static String getUserToken() {
+        return userToken;
+    }
 }

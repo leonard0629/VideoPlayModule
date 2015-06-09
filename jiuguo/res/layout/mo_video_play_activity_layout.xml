@@ -262,7 +262,7 @@
 						android:background="@drawable/mo_video_play_apple_bg"
 						android:layout_below="@+id/video_apple_tips"
 						android:layout_marginTop="10dp"
-						android:gravity="center"/>
+						android:gravity="center" android:text="0"/>
 
 				</RelativeLayout>
 

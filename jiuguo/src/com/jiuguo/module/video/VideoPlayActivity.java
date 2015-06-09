@@ -1,10 +1,7 @@
 package com.jiuguo.module.video;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.*;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.*;
@@ -120,6 +117,7 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                 }
                 case APPLE_SEND_SUCCESS : {
                     CommonUtils.toast(mContext, "赠送小苹果成功！！", Toast.LENGTH_SHORT);
+                    ivAppleTips.setVisibility(View.GONE);
                     getApple();
                     break;
                 }
@@ -251,7 +249,11 @@ public class VideoPlayActivity extends Activity implements MediaPlayer.OnInfoLis
                 @Override
                 public void onClick(View v) {
                     ivApple.setClickable(false);
-                    postApple();
+                    if (CommonUtils.isLogin()) {
+                        postApple();
+                    } else {
+                        CommonUtils.toast(mContext, "您还没登录咧！！", Toast.LENGTH_SHORT);
+                    }
                 }
             });
         } else {
